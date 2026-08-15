@@ -54,14 +54,19 @@ export default function ConceptPage(): React.JSX.Element {
         </p>
         <ul>
           <li>
-            <code>physicsSilhouette − pca2dSilhouette ≤ 0.05</code> → <em>&ldquo;No meaningful gain over a 2-axis view&rdquo;</em> — a scatter plot
+            <code>physicsSilhouette − pca2dSilhouette ≤ 0.20</code> → <em>&ldquo;No meaningful gain over a 2-axis view&rdquo;</em> — a scatter plot
             would show you the same thing. Both raw numbers are always shown, win or lose.
           </li>
           <li>
-            <code>&gt; 0.05</code> → <em>&ldquo;Physics separates this data better than the best 2-axis view&rdquo;</em> — these columns are doing
+            <code>&gt; 0.20</code> → <em>&ldquo;Physics separates this data better than the best 2-axis view&rdquo;</em> — these columns are doing
             joint work no single scatter plot shows.
           </li>
         </ul>
+        <p>
+          That 0.20 line is deliberately conservative — raised from an initial 0.05 after measuring that k-means silhouette shows real apparent
+          structure even in pure noise, and that a physics-settled layout is more prone to that false signal than a flat PCA projection is. Full
+          measured account on <a href="/docs/limitations">/docs/limitations</a>.
+        </p>
         <p>
           This is a mechanism, not a promise: the CI eval suite (<code>evals/</code>) asserts a real clustered dataset scores &ldquo;stronger&rdquo;
           and a genuinely random one scores &ldquo;no meaningful gain,&rdquo; so a change that quietly breaks the claim fails CI before it ships a

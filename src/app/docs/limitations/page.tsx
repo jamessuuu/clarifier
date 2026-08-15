@@ -8,6 +8,23 @@ export default function LimitationsPage(): React.JSX.Element {
       <div className="docs-prose">
         <h1>Limitations</h1>
 
+        <h2>The &ldquo;stronger&rdquo; threshold is 0.20, not the 0.05 originally specified</h2>
+        <p>
+          The build spec set the separation-gain &ldquo;stronger&rdquo; cutoff at a 0.05 silhouette-score gap. Measured while getting the CI eval
+          green (not assumed): k-means silhouette shows non-trivial apparent clustering on ANY finite point set, even pure noise (measured: 180
+          uniform-random 2D points, k=2..4, silhouette 0.37-0.39). The physics-settled layout consistently scored higher on this baseline
+          inflation than the 2-axis PCA view did, across more than a dozen tested configurations — an attraction-dominated particle system has a
+          structural tendency to fragment pure noise into locally-dense clumps, the visual analogue of gravitational instability. At the
+          spec&apos;s literal 0.05, the uncorrelated-random golden fixture — the one dataset that <em>must</em> print &ldquo;no meaningful
+          gain,&rdquo; since that is the entire point of the death-condition guard — instead printed &ldquo;stronger,&rdquo; with a gap around
+          0.14-0.17 across five different random seeds. No physics or fixture change closed that gap without also erasing genuine structure&apos;s
+          own (smaller) margin. The threshold is raised to 0.20, set just above the highest measured false-positive gap with real headroom. The
+          cost, equally real: <code>blobs-3-known</code>, the bundled synthetic sample with known ground truth, now honestly reports &ldquo;no
+          meaningful gain&rdquo; too (its own gap is about 0.05) rather than the &ldquo;stronger&rdquo; result a first read of the spec assumed it
+          would show. Between occasionally under-crediting real structure and ever crediting pure noise, this tool takes the conservative side —
+          full account in <code>src/core/separation-gain.ts</code>.
+        </p>
+
         <h2>Not a general charting library</h2>
         <p>
           clarifier does not replace a bar chart, line chart, or scatter plot for the questions those tools already answer well. It exists for

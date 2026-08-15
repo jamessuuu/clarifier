@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { generateHighCardinalityIdOnly, generateOneRow, toCsv } from "@/core/synthetic";
 
-import { loadDataset } from "./useSimulation";
+import { buildSimulation, loadDataset, parseAndInfer } from "./useSimulation";
 
 describe("loadDataset — SPEC.md §12 failure contracts, resolved in one place", () => {
   it("classifies empty input", () => {
@@ -31,7 +31,7 @@ describe("loadDataset — SPEC.md §12 failure contracts, resolved in one place"
     expect(outcome.status).toBe("ready");
   });
 
-  it("a normal multi-column numeric dataset reaches 'ready' with a live Simulation instance", () => {
+  it("a normal multi-column numeric dataset reaches 'ready' with a live, CONVERGED Simulation and a separationGain", () => {
     const rows = Array.from({ length: 30 }, (_, i) => ({ id: `r${String(i)}`, a: i, b: 30 - i }));
     const csv = toCsv(rows);
     const outcome = loadDataset(csv, 1);
@@ -39,6 +39,33 @@ describe("loadDataset — SPEC.md §12 failure contracts, resolved in one place"
     if (outcome.status === "ready") {
       expect(outcome.rowCount).toBe(30);
       expect(outcome.sim.field.n).toBe(30);
+      expect(outcome.sim.converged).toBe(true);
+      expect(["stronger", "no-meaningful-gain", "insufficient-variance"]).toContain(outcome.separationGain.verdict);
     }
+  });
+});
+
+describe("parseAndInfer + buildSimulation — the two-phase split the mapping panel relies on", () => {
+  it("buildSimulation returns a FRESH, UNCONVERGED simulation — the caller animates it, this never auto-solves", () => {
+    const rows = Array.from({ length: 30 }, (_, i) => ({ id: `r${String(i)}`, a: i, b: 30 - i }));
+    const csv = toCsv(rows);
+    const outcome = parseAndInfer(csv);
+    expect(outcome.status).toBe("ready");
+    if (outcome.status !== "ready") return;
+    const sim = buildSimulation(outcome.parsed, outcome.mappings, outcome.stats, 1);
+    expect(sim.step).toBe(0);
+    expect(sim.converged).toBe(false);
+  });
+
+  it("re-running buildSimulation with an overridden mapping changes the resolved force field", () => {
+    const rows = Array.from({ length: 20 }, (_, i) => ({ id: `r${String(i)}`, a: i, group: i % 2 === 0 ? "x" : "y" }));
+    const csv = toCsv(rows);
+    const outcome = parseAndInfer(csv);
+    expect(outcome.status).toBe("ready");
+    if (outcome.status !== "ready") return;
+    const overridden = outcome.mappings.map((m) => (m.name === "group" ? { ...m, role: "charge" as const } : m));
+    const sim = buildSimulation(outcome.parsed, overridden, outcome.stats, 1);
+    // With "group" now mapped to charge, at least one row should carry a nonzero charge.
+    expect(Array.from(sim.field.charge).some((c) => c !== 0)).toBe(true);
   });
 });
