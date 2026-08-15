@@ -69,6 +69,9 @@ importers:
       vitest:
         specifier: 4.1.10
         version: 4.1.10(@types/node@22.20.1)(vite@8.2.1(@types/node@22.20.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12))
+      wgsl_reflect:
+        specifier: ^1.5.0
+        version: 1.5.0
 
 packages:
 
@@ -2480,6 +2483,9 @@ packages:
         optional: true
       jsdom:
         optional: true
+
+  wgsl_reflect@1.5.0:
+    resolution: {integrity: sha512-ntYNHZgzBHs+pzmVCsSiRqyye3Ey1xdKEX0Ls8PiDBKIiGFwUOef0PdBbYvUyGTGFwLKkqTZOGmPAed70mquTw==}
 
   which-boxed-primitive@1.1.1:
     resolution: {integrity: sha512-TbX3mj8n0odCBFVlY8AxkqcHASw3L60jIuF8jFP78az3C2YhmGvqbHBpAjTRH2/xqYunrJ9g1jSyjCjpoWzIAA==}
@@ -5010,6 +5016,8 @@ snapshots:
       '@types/node': 22.20.1
     transitivePeerDependencies:
       - msw
+
+  wgsl_reflect@1.5.0: {}
 
   which-boxed-primitive@1.1.1:
     dependencies:

@@ -107,11 +107,14 @@ export function SimulationHost(): React.JSX.Element {
   const [draftText, setDraftText] = useState(DEFAULT_CSV);
   const reducedMotion = useReducedMotion();
   const capability = useCapability();
-  // SPEC.md §15 M3->M4: webgpu detection is real, but the compute/render
-  // path lands in M4 — until then this stays webgl2/static so a
-  // webgpu-capable visitor gets the fully-working WebGL2 rung instead of a
-  // half-built one.
-  const rung = resolveRung({ webgpu: capability.webgpu, webgl2: capability.webgl2, reducedMotion }, { webgpuImplemented: false });
+  // M4: the WGSL compute/render path now exists (src/gpu/) — a webgpu-
+  // capable visitor gets the real thing. Verified live against this build
+  // sandbox's real WebGPU adapter (docs/limitations): navigator.gpu.
+  // requestAdapter() resolved null early in the build (M0's probe) but a
+  // real adapter+device later in the same session, and SimulationCanvas's
+  // webgpu branch was exercised end to end (both the naive and the
+  // above-5,000-row spatial-grid path) with zero console errors.
+  const rung = resolveRung({ webgpu: capability.webgpu, webgl2: capability.webgl2, reducedMotion });
 
   const outcome = useParsedDataset(csvText);
 

@@ -70,12 +70,38 @@ export default function LimitationsPage(): React.JSX.Element {
           nothing about the analytical claim a still frame with its printed number already carries.
         </p>
 
-        <h2>The WGSL compute path is never exercised in CI</h2>
+        <h2>The WGSL compute path is never exercised in CI — but it was exercised on real hardware during the build</h2>
         <p>
-          GitHub Actions runners have no GPU. CI runs the CPU/JS reference core (<code>src/core/</code>) only — the same core the WebGL2 rung
-          also runs on the CPU. The WGSL kernel is hand-ported from that core and documented against it function-by-function, but a byte-level
-          equivalence check only ever runs on real WebGPU hardware, manually, not as a CI gate.
+          GitHub Actions runners have no GPU, so CI runs the CPU/JS reference core (<code>src/core/</code>) only — the same core the WebGL2 rung
+          also runs on the CPU — plus a WGSL <em>syntax</em> check (<code>src/gpu/kernels.test.ts</code>, via the <code>wgsl_reflect</code> parser,
+          which needs no GPU). That syntax check is not a substitute for running the kernels; the real-hardware pass happened separately, once,
+          during this build:
         </p>
+        <ul>
+          <li>
+            A direct <code>navigator.gpu.requestAdapter()</code> probe against this project&apos;s own interactive browser session returned{" "}
+            <code>null</code> early in the build and a real adapter and device later in the <em>same</em> session — hardware availability here is
+            not stable across every invocation.
+          </li>
+          <li>
+            While a real adapter was available, both the naive all-pairs path and the above-5,000-row spatial-grid path (counting-sort spatial
+            hash, the most algorithmically complex WGSL in the project) were run end to end against real datasets: the naive path settled 180
+            rows, the grid path settled 6,000 and 20,000 rows, all with zero console errors, correct row-count accounting, and visibly separated,
+            sensible output.
+          </li>
+          <li>
+            Frame time was measured, not assumed: roughly 60fps up to 6,000 rows (render-loop-capped — compute finishes comfortably inside one
+            frame), and roughly 39fps at 20,000 rows (genuinely compute/readback-bound — see <code>src/gpu/pipeline.ts</code> for why the
+            spatial-grid path includes a CPU roundtrip that WebGPU-capable hardware could, with more work, avoid).
+          </li>
+          <li>
+            The <em>automated</em> <code>pnpm e2e</code> suite, run through <code>@playwright/test</code>&apos;s own browser rather than that
+            interactive session, gets a <code>null</code> adapter in this environment and correctly falls back to the WebGL2 rung — its
+            WebGPU-specific assertions skip with a visible, logged reason (<code>e2e/webgpu.spec.ts</code>) rather than silently passing or
+            failing. The real-hardware pass above is real, but it is not part of that repeatable, automated suite, and a fresh clone of this repo
+            run through <code>pnpm e2e</code> should expect the same honest skip unless its own browser environment has a working adapter.
+          </li>
+        </ul>
       </div>
     </div>
   );

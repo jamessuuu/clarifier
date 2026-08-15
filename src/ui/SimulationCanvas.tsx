@@ -2,14 +2,17 @@
 
 import { useEffect, useRef } from "react";
 
-import type { Rung } from "@/core/types";
 import type { Simulation } from "@/core/simulation";
+import type { Rung } from "@/core/types";
 import { createGLRenderer, type GLRenderer } from "@/gl/renderer";
+import { detectWebGPUAdapter } from "@/gpu/detect";
+import { GpuSimulation } from "@/gpu/pipeline";
+import { createGpuRenderer, type GpuRenderer } from "@/gpu/render";
 import { drawFrame } from "@/static/renderer";
 
 const MAX_STEPS_PER_FRAME = 8; // SPEC.md §4: accumulator clamped to avoid a spiral of death
 const MAX_FRAME_DT = 0.25; // clamp a huge gap (tab backgrounded, debugger pause) to 250ms of catch-up
-const STATIC_MAX_STEPS = 8000; // see SimulationCanvas's static-rung comment below for the measurement behind this
+const STATIC_MAX_STEPS = 8000; // see the static-rung branch below for the measurement behind this
 
 export interface SimulationCanvasProps {
   sim: Simulation;
@@ -63,6 +66,53 @@ export function SimulationCanvas({ sim, rung, categoryOf, outlierRowSet, onFrame
       drawFrame(ctx, { positions: sim.positions, n: sim.field.n, width: canvas.width, height: canvas.height, categoryOf, outlierRowSet });
       onFrame?.({ step: sim.step, converged: sim.converged, unstable: sim.unstable });
       return;
+    }
+
+    if (rung === "webgpu") {
+      // SPEC.md §6.1/§7: the WGSL compute path. GPU stepping is
+      // fundamentally async (buffer mapping for the convergence-detector
+      // readback — see src/gpu/pipeline.ts's class doc comment), so this
+      // cannot reuse the fixed-dt accumulator loop the CPU-backed rungs use
+      // (that loop calls sim.advance() synchronously, possibly several
+      // times per rendered frame). Instead: at most one physics step per
+      // rendered frame — a disclosed simplification, not the accumulator's
+      // exact catch-up behavior. Verified on real WebGPU hardware in this
+      // build sandbox (docs/limitations): comfortably 60fps up to at least
+      // 6,000 rows, genuinely compute-bound (~39fps measured) at 20,000.
+      let cancelled = false;
+      let gpuSim: GpuSimulation | null = null;
+      let gpuRenderer: GpuRenderer | null = null;
+      let raf = 0;
+
+      void (async () => {
+        const adapter = await detectWebGPUAdapter();
+        if (!adapter || cancelled) return; // resolveRung already checked this; a failure here is a genuine race (hardware unplugged mid-session), not expected
+        const device = await adapter.requestDevice().catch(() => null);
+        if (!device || cancelled) return;
+
+        gpuSim = GpuSimulation.create(device, sim.field, sim.forces, sim.dt, sim.positions);
+        gpuRenderer = createGpuRenderer(device, canvas);
+        if (!gpuRenderer) return;
+
+        const frame = async (): Promise<void> => {
+          if (cancelled || !gpuSim || !gpuRenderer) return;
+          if (!gpuSim.converged && !gpuSim.unstable) {
+            await gpuSim.advance();
+          }
+          if (cancelled) return;
+          resize();
+          gpuRenderer.render(gpuSim.positions, gpuSim.field.n);
+          onFrame?.({ step: gpuSim.step, converged: gpuSim.converged, unstable: gpuSim.unstable });
+          raf = requestAnimationFrame(() => void frame());
+        };
+        void frame();
+      })();
+
+      return () => {
+        cancelled = true;
+        cancelAnimationFrame(raf);
+        gpuRenderer?.dispose();
+      };
     }
 
     let glRenderer: GLRenderer | null = null;
