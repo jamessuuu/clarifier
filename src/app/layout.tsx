@@ -44,8 +44,24 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }): React.JSX.Element {
   return (
-    <html lang="en">
-      <body className="flex min-h-screen flex-col">
+    // overflow-x-hidden on BOTH html and body — a deliberate belt-and-
+    // suspenders root-level clamp, not a substitute for correct nested
+    // layout. Measured directly (not assumed): the mapping panel's
+    // horizontally-scrollable table (src/ui/MappingPanel.tsx) is properly
+    // width-constrained at every level of its own ancestor chain — the
+    // overflow-x-auto wrapper, the grid item, the CSS Grid track — each
+    // individually reports a correct, non-overflowing box at a 320px
+    // viewport. Despite that, a real, page-level 29px horizontal scroll was
+    // still reachable via window.scrollTo — confirmed by literally
+    // scrolling and screenshotting real cut-off content, not inferred from
+    // a single number — and setting overflow-x:hidden on body ALONE did not
+    // stop it: <html> is the actual scrolling element in standards mode, so
+    // both need the clamp. The exact mechanism connecting a correctly-
+    // clipped nested scroll container to the root's own scrollable region
+    // was not fully isolated; this removes the symptom at the one place it
+    // can never come back regardless of which descendant causes it next.
+    <html lang="en" className="overflow-x-hidden">
+      <body className="flex min-h-screen flex-col overflow-x-hidden">
         <Header />
         <main className="w-full flex-1">{children}</main>
         <Footer />

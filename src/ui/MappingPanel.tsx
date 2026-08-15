@@ -45,8 +45,21 @@ export function MappingPanel({ mappings, stats, onChange }: MappingPanelProps): 
   }
 
   return (
-    <div className="overflow-x-auto rounded-[2px] border border-rule">
-      <table className="w-full text-left text-xs">
+    // table-fixed + an explicit min-width, instead of the default
+    // table-layout:auto: auto-layout lets column widths shift with content
+    // (e.g. the role select showing "attraction" vs "excluded" is a
+    // different label width), which made columns visibly jitter on
+    // interaction. Fixed layout keeps column widths stable regardless of
+    // which option is selected; overflow-x-auto on the wrapper still
+    // carries the narrow-viewport case, unchanged, since the table can be
+    // wider than the wrapper (a real, tracked-down false alarm during this
+    // build: an apparent 320px page overflow chased through several CSS
+    // theories turned out to be a shared local machine's e2e run reusing a
+    // DIFFERENT project's dev server on the same port, not this table —
+    // see e2e/smoke.spec.ts's own comment. This div's max-w-full is cheap,
+    // harmless insurance kept from that investigation, not load-bearing).
+    <div className="max-w-full overflow-x-auto rounded-[2px] border border-rule">
+      <table className="w-full min-w-[520px] table-fixed text-left text-xs">
         <thead>
           <tr className="border-b border-rule bg-amber-soft">
             <th scope="col" className="px-3 py-2 font-house-mono font-medium">

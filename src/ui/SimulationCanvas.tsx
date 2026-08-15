@@ -119,7 +119,20 @@ export function SimulationCanvas({ sim, rung, categoryOf, outlierRowSet, onFrame
     let ctx2d: CanvasRenderingContext2D | null = null;
     if (rung === "webgl2") {
       glRenderer = createGLRenderer(canvas);
-      if (!glRenderer) return; // detection said webgl2 was available; a real creation failure here is a genuine SPEC.md §12 case, not expected in practice
+      // SPEC.md §12: "WebGL2 context creation also fails | Falls to the
+      // static rung." resolveRung's earlier detectWebGL2() probe already
+      // said this should work, so a real failure here is rare — but "rare"
+      // is not "never": a fresh createContext call can still fail after a
+      // successful probe (driver blocklisting, exhausted context budget,
+      // flag differences between a throwaway probe and a real context). An
+      // earlier version of this branch just `return`ed here, leaving a
+      // blank canvas forever with no fallback — exactly the "empty canvas,
+      // no explanation" failure this project exists to refuse. Falls
+      // through to the same ctx2d path the static rung already uses below.
+      if (!glRenderer) {
+        ctx2d = canvas.getContext("2d");
+        if (!ctx2d) return;
+      }
     } else {
       ctx2d = canvas.getContext("2d");
       if (!ctx2d) return;

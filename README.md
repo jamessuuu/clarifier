@@ -1,6 +1,6 @@
 <img src="public/brand/lockup.svg" alt="clarifier" height="56" />
 
-Paste a CSV. Columns map to physical properties — mass, charge, attraction, viscosity, springiness — not to axes. The data arranges itself under a real n-body-style simulation, running entirely on your GPU, and it tells you with a computed number whether that arrangement found something a 2-axis scatter plot couldn't.
+Paste a CSV. Columns map to physical properties — mass, charge, attraction, viscosity, springiness — not to axes. The data arranges itself under a real n-body-style simulation, GPU-compute (WebGPU) where available, falling back to WebGL2 then a CPU-rendered static frame — and it tells you with a computed number whether that arrangement found something a 2-axis scatter plot couldn't.
 
 Zero server compute at any traffic. Nothing you paste ever leaves your device — there is no API route in this app at all.
 
@@ -9,6 +9,8 @@ Zero server compute at any traffic. Nothing you paste ever leaves your device �
 A conventional chart needs you to pick one or two axes before you look. clarifier maps every numeric and categorical column you choose to a physical force — mass, charge, attraction, viscosity, an optional spring — and lets a real symplectic-Euler particle simulation settle under all of them at once. The settled layout is a physically legible multivariate embedding: a point's position is jointly determined by everything you mapped, not by two chosen axes.
 
 It also refuses to overclaim. Every run prints a **separation-gain** number: the best 2-axis view's silhouette score versus the settled physics layout's silhouette score, at the same `k`. If physics doesn't beat the best scatter plot by a real margin, the page says so in plain language, with both numbers shown. See [`/docs/concept`](https://clarifier.vercel.app/docs/concept).
+
+Ships with three bundled sample datasets (a real, CC0-licensed one and two synthetic ones — [`/docs/limitations`](https://clarifier.vercel.app/docs/limitations) has the honest separation-gain numbers for all three), an accessible results panel for anyone who can't or doesn't want to watch the animation, and a PNG export that embeds the exact seed/mappings/step count it was rendered from.
 
 ## Quickstart
 

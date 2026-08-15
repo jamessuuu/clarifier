@@ -62,7 +62,14 @@ export interface GLRenderer {
 }
 
 export function createGLRenderer(canvas: HTMLCanvasElement): GLRenderer | null {
-  const gl = canvas.getContext("webgl2");
+  // preserveDrawingBuffer: without it, a browser is free to clear the
+  // drawing buffer right after compositing each frame — fine for the render
+  // loop itself, but src/ui/pngExport.ts's canvas.toBlob() runs from a
+  // click handler on a LATER task than the last draw, exactly the case
+  // WebGL's own spec warns can read back a blank canvas otherwise (SPEC.md
+  // §9's export button needs to work reliably on this rung, not just most
+  // of the time).
+  const gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true });
   if (!gl) return null;
 
   const program = gl.createProgram();

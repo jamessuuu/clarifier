@@ -23,7 +23,8 @@
     "diagram": "node scripts/diagram.mjs --out=public/diagram",
     "ci:diagram-check": "pnpm diagram && git diff --exit-code -- public/diagram",
     "gen:samples": "node scripts/gen-samples.mjs --out=public/samples",
-    "ci:samples-check": "pnpm gen:samples && git diff --exit-code -- public/samples",
+    "ci:samples-check": "pnpm gen:samples && git diff --exit-code -- public/samples src/ui/sample-datasets.ts",
+    "demo:record": "node scripts/record-demo.mjs --out=public/demo",
     "ci:zero-functions": "node scripts/assert-zero-functions.mjs"
   },
   "dependencies": {

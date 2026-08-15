@@ -17,7 +17,11 @@ export default function QuickstartPage(): React.JSX.Element {
         </p>
 
         <h2>2. Paste your own CSV</h2>
-        <p>Click &ldquo;Paste your own CSV&rdquo; and paste tabular data with a header row. clarifier infers each column&apos;s type:</p>
+        <p>
+          Click &ldquo;Paste your own CSV&rdquo; and paste tabular data with a header row — or try the other two bundled samples first (a
+          synthetic dataset with a known cluster count, and a deliberately uncorrelated one) from the sample-dataset buttons above it.
+          clarifier infers each column&apos;s type:
+        </p>
         <ul>
           <li>
             <strong>numeric</strong> — more than 90% of non-null values parse as a float

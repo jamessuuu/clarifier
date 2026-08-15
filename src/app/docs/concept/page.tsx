@@ -21,8 +21,8 @@ export default function ConceptPage(): React.JSX.Element {
         <img
           src="/diagram/mechanism.svg"
           alt="Diagram: numeric high-variance column maps to mass and pulls toward the composition center; categorical column maps to charge and repels/attracts by group; second numeric column maps to attraction and pulls similar rows together; a binned column maps to viscosity and damps velocity, reading as sluggish subgroups. The visible effect — clusters, separation, or interpenetration — is the finding."
-          width={880}
-          height={420}
+          width={1100}
+          height={460}
           className="mt-4 w-full max-w-3xl rounded-[2px] border border-rule"
         />
 
@@ -68,9 +68,13 @@ export default function ConceptPage(): React.JSX.Element {
           measured account on <a href="/docs/limitations">/docs/limitations</a>.
         </p>
         <p>
-          This is a mechanism, not a promise: the CI eval suite (<code>evals/</code>) asserts a real clustered dataset scores &ldquo;stronger&rdquo;
-          and a genuinely random one scores &ldquo;no meaningful gain,&rdquo; so a change that quietly breaks the claim fails CI before it ships a
-          page whose central sentence is no longer true.
+          This is a mechanism, not a promise: the CI eval suite (<code>evals/</code>) pins both bundled synthetic fixtures to their
+          honestly-measured verdicts — even the 3-known-cluster dataset, engineered with obviously separated blobs, correctly comes back
+          &ldquo;no meaningful gain&rdquo; at this threshold (see <a href="/docs/limitations">/docs/limitations</a> for the full
+          account), same as the genuinely random one. The &ldquo;stronger&rdquo; verdict path itself is verified separately, directly,
+          against constructed inputs (<code>src/core/separation-gain.test.ts</code>) — so a change that quietly breaks either the
+          comparison logic or a pinned fixture&apos;s honest number fails CI before it ships a page whose central sentence is no longer
+          true.
         </p>
       </div>
     </div>

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
+import { DemoVideo } from "@/components/DemoVideo";
+
 export const metadata: Metadata = { title: "Docs" };
 
 const PAGES = [
@@ -16,6 +18,9 @@ export default function DocsIndexPage(): React.JSX.Element {
       <div className="docs-prose">
         <h1>Documentation</h1>
         <p>clarifier is a client-only tool: paste a CSV, map columns to physical forces, watch it settle. No account, no server, nothing you paste ever leaves the browser.</p>
+      </div>
+      <div className="max-w-3xl">
+        <DemoVideo />
       </div>
       <div className="mt-8 grid max-w-3xl gap-4 sm:grid-cols-2">
         {PAGES.map((p) => (
