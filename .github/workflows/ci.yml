@@ -1,0 +1,48 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # The five stages (SPEC.md §13). Order is the argument:
+      # typecheck -> lint -> unit -> e2e:smoke -> eval
+      - name: typecheck
+        run: pnpm typecheck
+      - name: lint
+        run: pnpm lint
+      - name: unit
+        run: pnpm test
+
+      # e2e:smoke: build the zero-functions static export, run Playwright
+      # against the real out/ directory, then the build-artifact gates that
+      # only make sense once that build exists.
+      - name: build
+        run: pnpm build
+      - name: install playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+      - name: e2e:smoke (playwright against the real static export)
+        run: pnpm e2e:smoke
+      - name: zero-functions gate
+        run: pnpm ci:zero-functions
+      - name: brand drift
+        run: pnpm ci:brand-check
+      - name: diagram drift
+        run: pnpm ci:diagram-check
+      - name: sample dataset drift
+        run: pnpm ci:samples-check
+
+      - name: eval (golden fixtures, SPEC.md §13)
+        run: pnpm eval

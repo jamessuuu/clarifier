@@ -1,0 +1,49 @@
+{
+  "name": "clarifier",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build --webpack",
+    "start": "next start",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run --project unit",
+    "test:watch": "vitest --project unit",
+    "eval": "vitest run --project eval",
+    "e2e": "playwright test",
+    "e2e:smoke": "playwright test --grep @smoke",
+    "brand": "node scripts/brand.mjs --project=clarifier --out=public/brand",
+    "ci:brand-check": "pnpm brand && git diff --exit-code -- public/brand",
+    "diagram": "node scripts/diagram.mjs --out=public/diagram",
+    "ci:diagram-check": "pnpm diagram && git diff --exit-code -- public/diagram",
+    "gen:samples": "node scripts/gen-samples.mjs --out=public/samples",
+    "ci:samples-check": "pnpm gen:samples && git diff --exit-code -- public/samples",
+    "ci:zero-functions": "node scripts/assert-zero-functions.mjs"
+  },
+  "dependencies": {
+    "next": "16.3.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "@playwright/test": "1.62.1",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.2.6",
+    "@types/react-dom": "^19.2.4",
+    "eslint": "^9.20.0",
+    "eslint-config-next": "16.3.1",
+    "sharp": "^0.35.3",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.24.0",
+    "vitest": "4.1.10"
+  }
+}

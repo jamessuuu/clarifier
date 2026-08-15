@@ -1,0 +1,148 @@
+@import "tailwindcss";
+
+/*
+ * Tailwind 4 config lives here, not a tailwind.config.js (BRAND-KIT.md /
+ * docs/DESIGN.md — binding). Palette: PAPER background, INK text/strokes,
+ * AMBER the one signal color, RULE hairlines. 0-2px radius, no gradients, no
+ * glow, no dark chrome, no webfont — system font stacks only.
+ */
+@theme {
+  --color-paper: #faf7f2;
+  --color-ink: #1a1712;
+  --color-amber: #b45309;
+  --color-amber-soft: #fdf1e4;
+  --color-rule: #e4ddd3;
+  --font-mono-house: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", monospace;
+  --font-sans-house: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --radius-brand: 2px;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans-house);
+  -webkit-font-smoothing: antialiased;
+}
+
+code,
+pre,
+kbd,
+.font-house-mono {
+  font-family: var(--font-mono-house);
+}
+
+::selection {
+  background: var(--color-amber-soft);
+  color: var(--color-ink);
+}
+
+a {
+  text-underline-offset: 3px;
+}
+
+/* Visible focus ring everywhere — SPEC §11 keyboard access is real, not decorative. */
+:focus-visible {
+  outline: 2px solid var(--color-amber);
+  outline-offset: 2px;
+}
+
+/*
+ * SPEC §6/§11: the simulation canvas animates continuously while unconverged.
+ * `prefers-reduced-motion` forces the static rung in JS (SimulationHost), but
+ * this CSS backstop also stops any purely-decorative CSS animation/transition
+ * immediately, independent of JS timing.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Docs typography — DESIGN-DIRECTION.md §4: dense, plain, no webfont. */
+.docs-prose {
+  max-width: 42rem;
+}
+.docs-prose h1 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.75rem;
+}
+.docs-prose h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-rule);
+}
+.docs-prose h2:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 1.5rem;
+}
+.docs-prose p {
+  margin-top: 0.9rem;
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--color-ink) 88%, transparent);
+}
+.docs-prose ul,
+.docs-prose ol {
+  margin-top: 0.9rem;
+  padding-left: 1.25rem;
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--color-ink) 88%, transparent);
+}
+.docs-prose li {
+  margin-top: 0.35rem;
+}
+.docs-prose code {
+  background: var(--color-amber-soft);
+  padding: 0.1em 0.35em;
+  border-radius: var(--radius-brand);
+  font-size: 0.9em;
+}
+.docs-prose pre {
+  margin-top: 0.9rem;
+  padding: 0.9rem 1rem;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  border-radius: var(--radius-brand);
+  overflow-x: auto;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.docs-prose pre code {
+  background: none;
+  padding: 0;
+}
+.docs-prose table {
+  margin-top: 1rem;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.docs-prose th,
+.docs-prose td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-rule);
+  vertical-align: top;
+}
+.docs-prose th {
+  background: var(--color-amber-soft);
+  font-weight: 600;
+}
+.docs-prose a {
+  color: var(--color-amber);
+  text-decoration: underline;
+}
