@@ -1,5 +1,7 @@
 // @ts-check
 import js from "@eslint/js";
+import jsxA11y from "eslint-plugin-jsx-a11y";
+import reactHooks from "eslint-plugin-react-hooks";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
@@ -18,6 +20,16 @@ export default tseslint.config(
   },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
+  reactHooks.configs.flat["recommended-latest"],
+  {
+    // SPEC.md §11 accessibility is a first-class requirement, not an
+    // afterthought: real focusable controls, labeled forms, real <title>/
+    // <desc> on diagrams. jsx-a11y catches the mechanical subset of that at
+    // lint time; the a11y-audit skill covers what only a live interface can
+    // reveal (focus order, contrast against rendered pixels).
+    files: ["src/**/*.tsx"],
+    ...jsxA11y.flatConfigs.recommended,
+  },
   {
     languageOptions: {
       parserOptions: {
