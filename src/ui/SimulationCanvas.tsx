@@ -2,33 +2,34 @@
 
 import { useEffect, useRef } from "react";
 
+import type { Rung } from "@/core/types";
 import type { Simulation } from "@/core/simulation";
+import { createGLRenderer, type GLRenderer } from "@/gl/renderer";
 import { drawFrame } from "@/static/renderer";
 
 const MAX_STEPS_PER_FRAME = 8; // SPEC.md §4: accumulator clamped to avoid a spiral of death
 const MAX_FRAME_DT = 0.25; // clamp a huge gap (tab backgrounded, debugger pause) to 250ms of catch-up
+const STATIC_MAX_STEPS = 8000; // see SimulationCanvas's static-rung comment below for the measurement behind this
 
 export interface SimulationCanvasProps {
   sim: Simulation;
+  /** The already-resolved rung (SPEC.md §6) — this component renders it, it does not detect capability itself. */
+  rung: Rung;
   categoryOf?: (i: number) => number;
   outlierRowSet?: ReadonlySet<number>;
-  /** SPEC.md §11: prefers-reduced-motion forces the static rung — this component still renders one frame but never runs the animation loop when true. */
-  reducedMotion: boolean;
   onFrame?: (info: { step: number; converged: boolean; unstable: boolean }) => void;
   className?: string;
   "data-testid"?: string;
 }
 
-export function SimulationCanvas({ sim, categoryOf, outlierRowSet, reducedMotion, onFrame, className, ...rest }: SimulationCanvasProps): React.JSX.Element {
+export function SimulationCanvas({ sim, rung, categoryOf, outlierRowSet, onFrame, className, ...rest }: SimulationCanvasProps): React.JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
 
-    const dpr = typeof window !== "undefined" ? (window.devicePixelRatio || 1) : 1;
+    const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
 
     function resize(): void {
       if (!canvas) return;
@@ -42,31 +43,45 @@ export function SimulationCanvas({ sim, categoryOf, outlierRowSet, reducedMotion
     }
     resize();
 
-    function draw(): void {
-      if (!canvas || !ctx) return;
-      drawFrame(ctx, {
-        positions: sim.positions,
-        n: sim.field.n,
-        width: canvas.width,
-        height: canvas.height,
-        categoryOf,
-        outlierRowSet,
-      });
-    }
-
-    if (reducedMotion) {
-      // Runs the same headless solve as the static rung, once, then draws a
-      // single frame — never animates. 8000 steps (~133s of simulated time)
-      // covers even a slow-converging shape (measured: an evenly-spaced
-      // colinear attraction chain with no charge/mass differentiation can
-      // take ~4500 steps); a realistic multi-cluster dataset settles in a
-      // few hundred. If a pathological input still hasn't converged by then,
-      // the last-computed frame is rendered as-is rather than blocking
-      // indefinitely — a near-settled frame, not a crash.
-      sim.runToConvergence(8000);
-      draw();
+    if (rung === "static") {
+      // SPEC.md §6.3: runs the same CPU/JS algorithm to convergence once,
+      // headless (no per-frame render during the solve), then renders a
+      // SINGLE frame of the real converged output. Also what
+      // prefers-reduced-motion resolves to (SPEC.md §11), via the caller's
+      // rung selection, not a separate code path here.
+      //
+      // 8000 steps (~133s of simulated time) covers even a slow-converging
+      // shape (measured: an evenly-spaced colinear attraction chain with no
+      // charge/mass differentiation can take ~4500 steps); a realistic
+      // multi-cluster dataset settles in a few hundred. If a pathological
+      // input still hasn't converged by then, the last-computed frame is
+      // rendered as-is rather than blocking indefinitely — a near-settled
+      // frame, not a crash.
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      sim.runToConvergence(STATIC_MAX_STEPS);
+      drawFrame(ctx, { positions: sim.positions, n: sim.field.n, width: canvas.width, height: canvas.height, categoryOf, outlierRowSet });
       onFrame?.({ step: sim.step, converged: sim.converged, unstable: sim.unstable });
       return;
+    }
+
+    let glRenderer: GLRenderer | null = null;
+    let ctx2d: CanvasRenderingContext2D | null = null;
+    if (rung === "webgl2") {
+      glRenderer = createGLRenderer(canvas);
+      if (!glRenderer) return; // detection said webgl2 was available; a real creation failure here is a genuine SPEC.md §12 case, not expected in practice
+    } else {
+      ctx2d = canvas.getContext("2d");
+      if (!ctx2d) return;
+    }
+
+    function draw(): void {
+      if (!canvas) return;
+      if (glRenderer) {
+        glRenderer.render(sim.positions, sim.field.n);
+      } else if (ctx2d) {
+        drawFrame(ctx2d, { positions: sim.positions, n: sim.field.n, width: canvas.width, height: canvas.height, categoryOf, outlierRowSet });
+      }
     }
 
     let raf = 0;
@@ -96,9 +111,10 @@ export function SimulationCanvas({ sim, categoryOf, outlierRowSet, reducedMotion
     return () => {
       cancelled = true;
       cancelAnimationFrame(raf);
+      glRenderer?.dispose();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `sim` identity change is the intended re-run trigger; categoryOf/outlierRowSet/onFrame read live via closure each frame is acceptable for a render loop.
-  }, [sim, reducedMotion]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `sim`/`rung` identity change is the intended re-run trigger; categoryOf/outlierRowSet/onFrame read live via closure each frame is acceptable for a render loop.
+  }, [sim, rung]);
 
   return <canvas ref={canvasRef} role="img" aria-hidden="true" className={className} {...rest} style={{ width: "100%", height: "100%", display: "block" }} />;
 }

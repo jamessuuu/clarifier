@@ -2,17 +2,24 @@
 
 import { useMemo, useState } from "react";
 
+import { analyzeResults } from "@/core/results-analysis";
+import { resolveRung } from "@/core/rungs";
 import type { Simulation } from "@/core/simulation";
 import { generateBlobs3Known, toCsv } from "@/core/synthetic";
-import type { ColumnMapping, SeparationGain } from "@/core/types";
+import type { ColumnMapping, Rung, SeparationGain } from "@/core/types";
 import type { ColumnStats } from "@/csv/infer";
 import type { ParsedTable } from "@/csv/parse";
+import { buildNamedNumericColumns } from "@/csv/separation-gain-input";
+import { ResultsPanel } from "@/static/ResultsPanel";
 
+import { CapabilityLine } from "./CapabilityLine";
 import { MappingPanel } from "./MappingPanel";
 import { SeparationGainDisplay } from "./SeparationGainDisplay";
 import { SimulationCanvas } from "./SimulationCanvas";
-import { buildSimulation, computeSeparationGainForSim, useParsedDataset } from "./useSimulation";
+import { useCapability } from "./useCapability";
 import { useReducedMotion } from "./useReducedMotion";
+import { buildSimulation, computeSeparationGainForSim, useParsedDataset } from "./useSimulation";
+import { RUNG_BUDGETS } from "@/core/rungs";
 
 const DEFAULT_SEED = 1;
 const bundledBlobs = generateBlobs3Known(DEFAULT_SEED);
@@ -25,14 +32,13 @@ interface FrameInfo {
 }
 
 /**
- * Owns its own frame-info + separation-gain state, freshly initialized on
- * mount — the parent remounts this (via a `key` built from the mapping)
- * instead of resetting state in an effect (React's own recommended pattern
- * for "reset everything when an input changes"), which is also what keeps
- * this component free of the set-state-in-effect pattern entirely: gain is
- * only ever computed inside the onFrame event callback, never in an effect.
+ * Owns its own frame-info + results state, freshly initialized on mount —
+ * the parent remounts this (via a `key` built from the mapping + rung)
+ * instead of resetting state in an effect. Results (separation-gain +
+ * accessible analysis) are computed once, inside the onFrame event
+ * callback, the first time convergence is reached — never in an effect body.
  */
-function RunningSimulation({ sim, mappings, stats, seed, reducedMotion }: { sim: Simulation; mappings: ColumnMapping[]; stats: ColumnStats[]; seed: number; reducedMotion: boolean }): React.JSX.Element {
+function RunningSimulation({ sim, rung, mappings, stats, seed }: { sim: Simulation; rung: Rung; mappings: ColumnMapping[]; stats: ColumnStats[]; seed: number }): React.JSX.Element {
   const [frameInfo, setFrameInfo] = useState<FrameInfo>({ step: 0, converged: false, unstable: false });
   const [gain, setGain] = useState<SeparationGain | null>(null);
 
@@ -43,38 +49,50 @@ function RunningSimulation({ sim, mappings, stats, seed, reducedMotion }: { sim:
     }
   }
 
+  const analysis = useMemo(() => {
+    if (!gain || gain.verdict === "insufficient-variance") return null;
+    const columns = buildNamedNumericColumns(mappings, stats);
+    return analyzeResults(sim.positions, sim.field.n, gain.k, columns);
+  }, [gain, sim, mappings, stats]);
+
   return (
     <>
       <div className="aspect-square w-full overflow-hidden rounded-[2px] border border-rule bg-paper" data-testid="canvas-wrap">
-        <SimulationCanvas sim={sim} reducedMotion={reducedMotion} onFrame={handleFrame} data-testid="sim-canvas" />
+        <SimulationCanvas sim={sim} rung={rung} onFrame={handleFrame} data-testid="sim-canvas" />
       </div>
-      <div className="mt-3 font-house-mono text-xs text-ink/70" data-testid="status-line" aria-live="polite">
-        {frameInfo.unstable ? (
-          <span className="text-amber">simulation became unstable — showing the last stable frame</span>
-        ) : frameInfo.converged ? (
-          <span>
-            Settled after {(frameInfo.step / 60).toFixed(1)}s, {frameInfo.step} steps
-          </span>
-        ) : (
-          <span>Settling… step {frameInfo.step}</span>
-        )}
+      <div className="mt-3 flex flex-col gap-1">
+        <div className="font-house-mono text-xs text-ink/70" data-testid="status-line" aria-live="polite">
+          {frameInfo.unstable ? (
+            <span className="text-amber">simulation became unstable — showing the last stable frame</span>
+          ) : frameInfo.converged ? (
+            <span>
+              Settled after {(frameInfo.step / 60).toFixed(1)}s, {frameInfo.step} steps
+            </span>
+          ) : (
+            <span>Settling… step {frameInfo.step}</span>
+          )}
+        </div>
       </div>
-      <div className="mt-4 min-h-[2.5rem]" aria-live="polite">
-        {gain && <SeparationGainDisplay gain={gain} />}
-      </div>
+      {gain && (
+        <div className="mt-4">{analysis ? <ResultsPanel analysis={analysis} gain={gain} /> : <SeparationGainDisplay gain={gain} />}</div>
+      )}
     </>
   );
 }
 
-function ReadyTool({ parsed, initialMappings, stats, reducedMotion }: { parsed: ParsedTable; initialMappings: ColumnMapping[]; stats: ColumnStats[]; reducedMotion: boolean }): React.JSX.Element {
+function ReadyTool({ parsed, initialMappings, stats, rung }: { parsed: ParsedTable; initialMappings: ColumnMapping[]; stats: ColumnStats[]; rung: Rung }): React.JSX.Element {
   const [mappings, setMappings] = useState(initialMappings);
   const mappingKey = useMemo(() => mappings.map((m) => `${m.name}:${m.role}:${m.normalization}`).join("|"), [mappings]);
-  const sim = useMemo(() => buildSimulation(parsed, mappings, stats, DEFAULT_SEED), [parsed, mappings, stats]);
+  const budget = RUNG_BUDGETS[rung];
+  const built = useMemo(() => buildSimulation(parsed, mappings, stats, DEFAULT_SEED, budget), [parsed, mappings, stats, budget]);
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
       <div className="min-w-0">
-        <RunningSimulation key={mappingKey} sim={sim} mappings={mappings} stats={stats} seed={DEFAULT_SEED} reducedMotion={reducedMotion} />
+        <RunningSimulation key={`${mappingKey}::${rung}`} sim={built.sim} rung={rung} mappings={mappings} stats={built.sampledStats} seed={DEFAULT_SEED} />
+        <div className="mt-3">
+          <CapabilityLine rung={rung} detecting={false} sampleInfo={built.sampleInfo} />
+        </div>
       </div>
       <div className="flex min-w-0 flex-col gap-4">
         <h2 className="text-sm font-medium">Column mapping</h2>
@@ -88,13 +106,25 @@ export function SimulationHost(): React.JSX.Element {
   const [csvText, setCsvText] = useState(DEFAULT_CSV);
   const [draftText, setDraftText] = useState(DEFAULT_CSV);
   const reducedMotion = useReducedMotion();
+  const capability = useCapability();
+  // SPEC.md §15 M3->M4: webgpu detection is real, but the compute/render
+  // path lands in M4 — until then this stays webgl2/static so a
+  // webgpu-capable visitor gets the fully-working WebGL2 rung instead of a
+  // half-built one.
+  const rung = resolveRung({ webgpu: capability.webgpu, webgl2: capability.webgl2, reducedMotion }, { webgpuImplemented: false });
 
   const outcome = useParsedDataset(csvText);
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
       {outcome.status === "ready" ? (
-        <ReadyTool key={csvText} parsed={outcome.parsed} initialMappings={outcome.mappings} stats={outcome.stats} reducedMotion={reducedMotion} />
+        capability.detected || reducedMotion ? (
+          <ReadyTool key={csvText} parsed={outcome.parsed} initialMappings={outcome.mappings} stats={outcome.stats} rung={rung} />
+        ) : (
+          <div className="flex aspect-[21/9] w-full items-center justify-center rounded-[2px] border border-rule bg-paper p-8 text-center text-sm text-ink/60">
+            Checking device capability…
+          </div>
+        )
       ) : (
         <div className="flex aspect-[21/9] w-full items-center justify-center rounded-[2px] border border-rule bg-paper p-8 text-center text-sm text-ink/70" data-testid="dataset-message">
           {outcome.status === "empty" && "Paste a CSV with a header row to begin."}

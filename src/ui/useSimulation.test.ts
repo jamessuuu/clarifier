@@ -52,7 +52,7 @@ describe("parseAndInfer + buildSimulation — the two-phase split the mapping pa
     const outcome = parseAndInfer(csv);
     expect(outcome.status).toBe("ready");
     if (outcome.status !== "ready") return;
-    const sim = buildSimulation(outcome.parsed, outcome.mappings, outcome.stats, 1);
+    const { sim } = buildSimulation(outcome.parsed, outcome.mappings, outcome.stats, 1, Number.POSITIVE_INFINITY);
     expect(sim.step).toBe(0);
     expect(sim.converged).toBe(false);
   });
@@ -64,8 +64,21 @@ describe("parseAndInfer + buildSimulation — the two-phase split the mapping pa
     expect(outcome.status).toBe("ready");
     if (outcome.status !== "ready") return;
     const overridden = outcome.mappings.map((m) => (m.name === "group" ? { ...m, role: "charge" as const } : m));
-    const sim = buildSimulation(outcome.parsed, overridden, outcome.stats, 1);
+    const { sim } = buildSimulation(outcome.parsed, overridden, outcome.stats, 1, Number.POSITIVE_INFINITY);
     // With "group" now mapped to charge, at least one row should carry a nonzero charge.
     expect(Array.from(sim.field.charge).some((c) => c !== 0)).toBe(true);
+  });
+
+  it("samples down to budget with a stratified sample when rows exceed the rung's point budget", () => {
+    const rows = Array.from({ length: 500 }, (_, i) => ({ id: `r${String(i)}`, a: i, group: i % 2 === 0 ? "x" : "y" }));
+    const csv = toCsv(rows);
+    const outcome = parseAndInfer(csv);
+    expect(outcome.status).toBe("ready");
+    if (outcome.status !== "ready") return;
+    const { sim, sampleInfo } = buildSimulation(outcome.parsed, outcome.mappings, outcome.stats, 1, 100);
+    expect(sampleInfo.sampled).toBe(true);
+    expect(sampleInfo.total).toBe(500);
+    expect(sampleInfo.shown).toBe(100);
+    expect(sim.field.n).toBe(100);
   });
 });

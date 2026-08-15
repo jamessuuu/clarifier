@@ -1,3 +1,4 @@
+import type { NamedNumericColumn } from "@/core/results-analysis";
 import type { SeparationGainInput } from "@/core/separation-gain";
 import type { ColumnMapping } from "@/core/types";
 
@@ -36,4 +37,17 @@ export function buildSeparationGainInput(mappings: readonly ColumnMapping[], sta
   }
 
   return { n, pcaColumns, physicsPositions, categoricalK, categoryOf, seed };
+}
+
+/** For the accessible results panel (SPEC.md §11) — the same mapped numeric columns as PCA sees, but with raw (unnormalized) values, since a value RANGE is only meaningful to a reader in the source units. */
+export function buildNamedNumericColumns(mappings: readonly ColumnMapping[], stats: readonly ColumnStats[]): NamedNumericColumn[] {
+  const out: NamedNumericColumn[] = [];
+  mappings.forEach((m, idx) => {
+    const stat = stats[idx];
+    if (!stat) return;
+    if (NUMERIC_FORCE_ROLES.has(m.role) && stat.type === "numeric") {
+      out.push({ name: m.name, rawValues: stat.numericValues });
+    }
+  });
+  return out;
 }
