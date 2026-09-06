@@ -93,7 +93,7 @@ export function MappingPanel({ mappings, stats, onChange }: MappingPanelProps): 
                   <label htmlFor={roleSelectId} className="sr-only">
                     Force role for column {m.name}
                   </label>
-                  <select id={roleSelectId} className="rounded-[2px] border border-rule bg-paper px-1.5 py-1" value={m.role} onChange={(e) => setRole(i, e.target.value as ColumnRole)}>
+                  <select id={roleSelectId} className="rounded-[2px] border border-rule-strong bg-paper px-1.5 py-1" value={m.role} onChange={(e) => setRole(i, e.target.value as ColumnRole)}>
                     {ROLE_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
@@ -109,7 +109,7 @@ export function MappingPanel({ mappings, stats, onChange }: MappingPanelProps): 
                       </label>
                       <select
                         id={normSelectId}
-                        className="rounded-[2px] border border-rule bg-paper px-1.5 py-1"
+                        className="rounded-[2px] border border-rule-strong bg-paper px-1.5 py-1"
                         value={m.normalization}
                         onChange={(e) => setNormalization(i, e.target.value as "rank" | "raw")}
                       >

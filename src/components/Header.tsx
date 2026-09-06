@@ -6,7 +6,7 @@ export function Header(): React.JSX.Element {
   return (
     <header className="border-b border-rule">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-4">
-        <Link href="/" prefetch={false} className="flex items-center gap-2 font-house-mono text-base tracking-tight">
+        <Link href="/" prefetch={false} className="flex items-center gap-2 font-house-mono text-base tracking-tight hover:text-amber">
           <img src="/brand/glyph.svg" alt="" width={28} height={28} aria-hidden="true" />
           <span>{SITE.name}</span>
         </Link>

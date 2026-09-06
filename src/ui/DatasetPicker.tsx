@@ -32,7 +32,7 @@ export function DatasetPicker({ activeCsv, onSelect }: DatasetPickerProps): Reac
               onClick={() => onSelect(d.csv)}
               title={d.description}
               className={`rounded-[2px] border px-3 py-1.5 text-left text-xs ${
-                active ? "border-ink bg-ink text-paper" : "border-rule bg-paper text-ink hover:border-ink/50"
+                active ? "border-ink bg-ink text-paper hover:border-amber" : "border-rule bg-paper text-ink hover:border-ink/50"
               }`}
             >
               {d.label}

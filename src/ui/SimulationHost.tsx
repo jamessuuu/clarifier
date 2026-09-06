@@ -220,7 +220,7 @@ export function SimulationHost(): React.JSX.Element {
         }}
       />
       {activeSampleNote && (
-        <p className="text-xs text-ink/60" data-testid="active-sample-note">
+        <p className="text-sm text-ink/60" data-testid="active-sample-note">
           {activeSampleNote}
         </p>
       )}
@@ -232,7 +232,7 @@ export function SimulationHost(): React.JSX.Element {
         <textarea
           id="csv-input"
           data-testid="csv-textarea"
-          className="h-32 w-full rounded-[2px] border border-rule bg-paper p-2 font-house-mono text-xs"
+          className="h-32 w-full rounded-[2px] border border-rule-strong bg-paper p-2 font-house-mono text-xs"
           value={draftText}
           onChange={(e) => setDraftText(e.target.value)}
           spellCheck={false}

@@ -12,6 +12,11 @@
   --color-amber: #b45309;
   --color-amber-soft: #fdf1e4;
   --color-rule: #e4ddd3;
+  /* --color-rule is a 1.26:1 hairline against paper — fine for a decorative
+     divider, but WCAG 1.4.11 needs 3:1 on the boundary that IDENTIFIES a
+     form control. rule-strong is the same warm-taupe family, darkened to
+     3.68:1 against --color-paper, for select/textarea/input borders only. */
+  --color-rule-strong: #8a7f6f;
   --font-mono-house: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", monospace;
   --font-sans-house: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --radius-brand: 2px;
