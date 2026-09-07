@@ -20,7 +20,7 @@ export function DemoVideo(): React.JSX.Element {
           <img
             src="/demo/poster.png"
             alt="Poster frame: clarifier settling the Palmer Penguins sample dataset. Reduced motion is on, so the recording is a link, not an autoplaying video."
-            className="w-full rounded-[2px] border border-rule"
+            className="w-full rounded-[var(--radius-brand)] border border-rule"
           />
         </a>
       ) : (
@@ -32,7 +32,7 @@ export function DemoVideo(): React.JSX.Element {
           playsInline
           poster="/demo/poster.png"
           aria-label="Recording of clarifier settling the Palmer Penguins sample dataset, then switching to the synthetic 3-cluster sample"
-          className="w-full rounded-[2px] border border-rule"
+          className="w-full rounded-[var(--radius-brand)] border border-rule"
         >
           <source src="/demo/clarifier-demo.webm" type="video/webm" />
         </video>

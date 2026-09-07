@@ -20,10 +20,14 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-const PAPER = "#FAF7F2";
-const INK = "#1A1712";
-const AMBER = "#B45309";
-const RULE = "#E4DDD3";
+/* Dusk, to match the page this diagram is embedded in (2026-09-07). On the
+   old cream values it rendered as a lit white slab punched into a dark docs
+   page. Measured with the WCAG relative-luminance formula against PAPER:
+   INK #E8ECF3 at 14.99:1, AMBER #F2A14B at 8.44:1, RULE is decorative. */
+const PAPER = "#141821";
+const INK = "#E8ECF3";
+const AMBER = "#F2A14B";
+const RULE = "#2A3140";
 
 const SW = 3; // standard stroke, px
 const SWH = 2; // hairline stroke, px

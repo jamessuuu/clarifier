@@ -17,7 +17,7 @@ export interface DatasetPickerProps {
 export function DatasetPicker({ activeCsv, onSelect }: DatasetPickerProps): React.JSX.Element {
   return (
     <div className="flex flex-col gap-2" data-testid="dataset-picker">
-      <span className="text-sm font-medium" id="dataset-picker-label">
+      <span className="font-house-mono text-xs uppercase tracking-[0.14em] text-ink-3" id="dataset-picker-label">
         Sample datasets
       </span>
       <div role="group" aria-labelledby="dataset-picker-label" className="flex flex-wrap gap-2">
@@ -31,8 +31,8 @@ export function DatasetPicker({ activeCsv, onSelect }: DatasetPickerProps): Reac
               aria-pressed={active}
               onClick={() => onSelect(d.csv)}
               title={d.description}
-              className={`rounded-[2px] border px-3 py-1.5 text-left text-xs ${
-                active ? "border-ink bg-ink text-paper hover:border-amber" : "border-rule bg-paper text-ink hover:border-ink/50"
+              className={`chip px-3 py-1.5 text-left ${
+                active ? "border-amber bg-amber-soft text-ink" : ""
               }`}
             >
               {d.label}

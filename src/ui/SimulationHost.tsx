@@ -88,7 +88,7 @@ function RunningSimulation({ sim, rung, mappings, stats, seed }: { sim: Simulati
 
   return (
     <>
-      <div ref={canvasWrapRef} className="aspect-square w-full overflow-hidden rounded-[2px] border border-rule bg-paper" data-testid="canvas-wrap">
+      <div ref={canvasWrapRef} className="instrument aspect-square w-full overflow-hidden bg-plot" data-testid="canvas-wrap">
         <SimulationCanvas sim={sim} rung={rung} onFrame={handleFrame} data-testid="sim-canvas" />
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -98,7 +98,7 @@ function RunningSimulation({ sim, rung, mappings, stats, seed }: { sim: Simulati
             every frame is bad for a keyboard/pointer user and, caught by
             trying it live, was ALSO enough to make Playwright's
             actionability check ("must be visible, stable") time out. */}
-        <div className="flex-1 font-house-mono text-xs text-ink/70" data-testid="status-line" aria-live="polite">
+        <div className="flex-1 font-house-mono text-xs text-ink-3" data-testid="status-line" aria-live="polite">
           {frameInfo.unstable ? (
             <span className="text-amber">simulation became unstable — showing the last stable frame</span>
           ) : frameInfo.converged ? (
@@ -114,7 +114,7 @@ function RunningSimulation({ sim, rung, mappings, stats, seed }: { sim: Simulati
           data-testid="export-png-button"
           onClick={() => void handleExport()}
           disabled={exportState === "exporting"}
-          className="rounded-[2px] border border-rule bg-paper px-3 py-1.5 text-xs text-ink hover:border-ink/50 disabled:opacity-50"
+          className="chip px-3 py-1.5 disabled:opacity-50"
         >
           {exportState === "exporting" ? "Exporting…" : "Export PNG"}
         </button>
@@ -137,8 +137,12 @@ function ReadyTool({ parsed, initialMappings, stats, rung }: { parsed: ParsedTab
   const budget = RUNG_BUDGETS[rung];
   const built = useMemo(() => buildSimulation(parsed, mappings, stats, DEFAULT_SEED, budget), [parsed, mappings, stats, budget]);
 
+  // 520px, not 360: the mapping table has five columns and a 500px minimum,
+  // so a narrower rail made table-fixed overlap its own cells (column name
+  // over type, normalization over missing) at every desktop width. Measured
+  // at 1440 before and after.
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_520px]">
       <div className="min-w-0">
         <RunningSimulation key={`${mappingKey}::${rung}`} sim={built.sim} rung={rung} mappings={mappings} stats={built.sampledStats} seed={DEFAULT_SEED} />
         <div className="mt-3">
@@ -146,7 +150,7 @@ function ReadyTool({ parsed, initialMappings, stats, rung }: { parsed: ParsedTab
         </div>
       </div>
       <div className="flex min-w-0 flex-col gap-4">
-        <h2 className="text-sm font-medium">Column mapping</h2>
+        <h2 className="font-house-mono text-xs uppercase tracking-[0.14em] text-ink-3">Column mapping</h2>
         <MappingPanel mappings={mappings} stats={stats} onChange={setMappings} />
       </div>
     </div>
@@ -190,12 +194,12 @@ export function SimulationHost(): React.JSX.Element {
         capability.detected || reducedMotion ? (
           <ReadyTool key={csvText} parsed={outcome.parsed} initialMappings={outcome.mappings} stats={outcome.stats} rung={rung} />
         ) : (
-          <div className="flex aspect-[21/9] w-full items-center justify-center rounded-[2px] border border-rule bg-paper p-8 text-center text-sm text-ink/60">
+          <div className="panel flex aspect-[21/9] w-full items-center justify-center p-8 text-center text-sm text-ink-3">
             Checking device capability…
           </div>
         )
       ) : (
-        <div className="flex aspect-[21/9] w-full items-center justify-center rounded-[2px] border border-rule bg-paper p-8 text-center text-sm text-ink/70" data-testid="dataset-message">
+        <div className="panel flex aspect-[21/9] w-full items-center justify-center p-8 text-center text-sm text-ink-2" data-testid="dataset-message">
           {outcome.status === "empty" && "Paste a CSV with a header row to begin."}
           {outcome.status === "parse-error" && outcome.message}
           {outcome.status === "zero-usable-columns" && "No columns here map to a physical property."}
@@ -203,7 +207,7 @@ export function SimulationHost(): React.JSX.Element {
       )}
 
       {outcome.status === "zero-usable-columns" && (
-        <ul className="text-xs text-ink/70" data-testid="excluded-columns">
+        <ul className="text-xs text-ink-2" data-testid="excluded-columns">
           {outcome.seenColumns.map((c) => (
             <li key={c.name}>
               <code>{c.name}</code>: {c.reason}
@@ -220,19 +224,19 @@ export function SimulationHost(): React.JSX.Element {
         }}
       />
       {activeSampleNote && (
-        <p className="text-sm text-ink/60" data-testid="active-sample-note">
+        <p className="text-sm text-ink-3" data-testid="active-sample-note">
           {activeSampleNote}
         </p>
       )}
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="csv-input" className="text-sm font-medium">
+        <label htmlFor="csv-input" className="font-house-mono text-xs uppercase tracking-[0.14em] text-ink-3">
           Paste your own CSV
         </label>
         <textarea
           id="csv-input"
           data-testid="csv-textarea"
-          className="h-32 w-full rounded-[2px] border border-rule-strong bg-paper p-2 font-house-mono text-xs"
+          className="h-32 w-full rounded-[var(--radius-brand)] border border-rule-strong bg-paper p-2 font-house-mono text-xs"
           value={draftText}
           onChange={(e) => setDraftText(e.target.value)}
           spellCheck={false}
@@ -242,7 +246,7 @@ export function SimulationHost(): React.JSX.Element {
             type="button"
             data-testid="run-button"
             onClick={() => setCsvText(draftText)}
-            className="rounded-[2px] border border-ink bg-ink px-4 py-2 text-sm text-paper hover:bg-ink/85"
+            className="btn-primary"
           >
             Run
           </button>

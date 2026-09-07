@@ -7,10 +7,21 @@
  * implementation per rung.
  */
 
-export const INK = "#1A1712";
-export const PAPER = "#FAF7F2";
-export const AMBER = "#B45309";
-export const RULE = "#E4DDD3";
+/*
+ * The plot's own palette. These were cream + near-black to match the page's
+ * daylight lighting; the page is dusk as of 2026-09-07 and these follow it,
+ * so the canvas is not a lit rectangle punched into a dark page. The names
+ * are unchanged (INK is "the mark colour", PAPER is "the plot ground") and
+ * every consumer keeps working.
+ *
+ * Measured with the WCAG relative-luminance formula against PAPER:
+ *   INK #E8ECF3 14.99:1, and every category below clears 6.6:1, so no
+ *   cluster colour is ever the weakest thing on the plot.
+ */
+export const INK = "#E8ECF3";
+export const PAPER = "#141821";
+export const AMBER = "#F2A14B";
+export const RULE = "#2A3140";
 
 export interface Viewport {
   width: number;
@@ -63,7 +74,9 @@ export interface DrawOptions {
   pointRadius?: number;
 }
 
-const CATEGORY_PALETTE = [INK, "#3A5A8C", "#6B7A3A", "#7A4B8C", "#2E7A6B", "#8C5A2E"];
+/* Six categorical hues for the charge-mapped column, lifted for a dark
+   ground. Lowest contrast against PAPER is #F2779B at 6.67:1. */
+const CATEGORY_PALETTE = ["#7FB2F0", "#7BD88F", "#C79BF0", "#5FD3BC", "#F2A14B", "#F2779B"];
 
 export function drawFrame(ctx: CanvasRenderingContext2D, opts: DrawOptions): Viewport {
   const { positions, n, width, height, categoryOf, outlierRowSet, pointRadius = 3.2 } = opts;
@@ -84,7 +97,7 @@ export function drawFrame(ctx: CanvasRenderingContext2D, opts: DrawOptions): Vie
     ctx.beginPath();
     ctx.arc(sx, sy, pointRadius, 0, Math.PI * 2);
     ctx.fillStyle = fill;
-    ctx.globalAlpha = isOutlier ? 1 : 0.85;
+    ctx.globalAlpha = isOutlier ? 1 : 0.82;
     ctx.fill();
 
     if (isOutlier) {

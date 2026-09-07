@@ -58,10 +58,20 @@ export function MappingPanel({ mappings, stats, onChange }: MappingPanelProps): 
     // DIFFERENT project's dev server on the same port, not this table —
     // see e2e/smoke.spec.ts's own comment. This div's max-w-full is cheap,
     // harmless insurance kept from that investigation, not load-bearing).
-    <div className="max-w-full overflow-x-auto rounded-[2px] border border-rule">
-      <table className="w-full min-w-[520px] table-fixed text-left text-xs">
+    <div className="panel max-w-full overflow-x-auto">
+      <table className="w-full min-w-[500px] table-fixed text-left text-xs">
+        {/* Explicit widths: table-fixed splits evenly by default, which gave
+            the column-name cell 20% and let "flipper_length_mm" run under
+            its neighbour. */}
+        <colgroup>
+          <col style={{ width: "25%" }} />
+          <col style={{ width: "14%" }} />
+          <col style={{ width: "23%" }} />
+          <col style={{ width: "24%" }} />
+          <col style={{ width: "15%" }} />
+        </colgroup>
         <thead>
-          <tr className="border-b border-rule bg-amber-soft">
+          <tr className="border-b border-rule bg-sub-2">
             <th scope="col" className="px-3 py-2 font-house-mono font-medium">
               column
             </th>
@@ -93,7 +103,7 @@ export function MappingPanel({ mappings, stats, onChange }: MappingPanelProps): 
                   <label htmlFor={roleSelectId} className="sr-only">
                     Force role for column {m.name}
                   </label>
-                  <select id={roleSelectId} className="rounded-[2px] border border-rule-strong bg-paper px-1.5 py-1" value={m.role} onChange={(e) => setRole(i, e.target.value as ColumnRole)}>
+                  <select id={roleSelectId} className="rounded-[var(--radius-brand)] border border-rule-strong bg-paper px-1.5 py-1" value={m.role} onChange={(e) => setRole(i, e.target.value as ColumnRole)}>
                     {ROLE_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
@@ -109,7 +119,7 @@ export function MappingPanel({ mappings, stats, onChange }: MappingPanelProps): 
                       </label>
                       <select
                         id={normSelectId}
-                        className="rounded-[2px] border border-rule-strong bg-paper px-1.5 py-1"
+                        className="rounded-[var(--radius-brand)] border border-rule-strong bg-paper px-1.5 py-1"
                         value={m.normalization}
                         onChange={(e) => setNormalization(i, e.target.value as "rank" | "raw")}
                       >

@@ -119,7 +119,7 @@ export function createGLRenderer(canvas: HTMLCanvasElement): GLRenderer | null {
     const width = canvas.width;
     const height = canvas.height;
     gl.viewport(0, 0, width, height);
-    gl.clearColor(0.98, 0.968, 0.949, 1); // PAPER
+    gl.clearColor(0.078, 0.094, 0.129, 1); // PAPER #141821
     gl.clear(gl.COLOR_BUFFER_BIT);
     if (n === 0) return;
 

@@ -14,8 +14,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: SITE.tagline,
     start_url: "/",
     display: "standalone",
-    theme_color: "#FAF7F2",
-    background_color: "#FAF7F2",
+    theme_color: "#0F131A",
+    background_color: "#0F131A",
     icons: [
       { src: "/brand/icon-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
       { src: "/brand/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },

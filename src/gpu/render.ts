@@ -53,7 +53,7 @@ export function createGpuRenderer(device: GPUDevice, canvas: HTMLCanvasElement):
 
     const encoder = device.createCommandEncoder();
     const view = context.getCurrentTexture().createView();
-    const pass = encoder.beginRenderPass({ colorAttachments: [{ view, clearValue: { r: 0.98, g: 0.968, b: 0.949, a: 1 }, loadOp: "clear", storeOp: "store" }] });
+    const pass = encoder.beginRenderPass({ colorAttachments: [{ view, clearValue: { r: 0.078, g: 0.094, b: 0.129, a: 1 }, loadOp: "clear", storeOp: "store" }] });
 
     if (n > 0) {
       const vp = computeViewport(positions, n, width, height);

@@ -1,29 +1,66 @@
 @import "tailwindcss";
 
 /*
- * Tailwind 4 config lives here, not a tailwind.config.js (BRAND-KIT.md /
- * docs/DESIGN.md — binding). Palette: PAPER background, INK text/strokes,
- * AMBER the one signal color, RULE hairlines. 0-2px radius, no gradients, no
- * glow, no dark chrome, no webfont — system font stacks only.
+ * clarifier — Tailwind 4 config lives here, not a tailwind.config.js
+ * (BRAND-KIT.md / docs/DESIGN.md).
+ *
+ * LIGHTING CHANGE, 2026-09-07. The palette was PAPER (#FAF7F2) with INK on
+ * top, 2px corners, "no gradients, no glow, no dark chrome". Rendered, the
+ * home route was a small heading, three lines of prose, and a large empty
+ * white square with black dots in it: a statistics figure, not a tool. A
+ * scatter plot is a light-emitting instrument, so the plot and the page it
+ * sits on are now dusk, and the six category hues can finally carry the
+ * clusters instead of being six dark inks.
+ *
+ * Measured with the WCAG relative-luminance formula on both grounds text
+ * lands on (--color-paper #0F131A and --color-sub-1 #181D26). Worst case,
+ * on --color-sub-1:
+ *   ink #E8ECF3 13.9:1   ink-2 #A5AEBE 7.56:1   ink-3 #7E8899 4.72:1
+ *   amber #F2A14B 8.03:1
+ * --color-rule-strong #6C7889 identifies form controls and clears WCAG
+ * 1.4.11's 3:1 non-text minimum at 3.77:1. --color-rule is a decorative
+ * hairline and is not held to it. The plot's own palette is in
+ * src/static/renderer.ts, measured there.
  */
 @theme {
-  --color-paper: #faf7f2;
-  --color-ink: #1a1712;
-  --color-amber: #b45309;
-  --color-amber-soft: #fdf1e4;
-  --color-rule: #e4ddd3;
-  /* --color-rule is a 1.26:1 hairline against paper — fine for a decorative
-     divider, but WCAG 1.4.11 needs 3:1 on the boundary that IDENTIFIES a
-     form control. rule-strong is the same warm-taupe family, darkened to
-     3.68:1 against --color-paper, for select/textarea/input borders only. */
-  --color-rule-strong: #8a7f6f;
+  --color-paper: #0f131a;
+  --color-sub-1: #181d26;
+  --color-sub-2: #212734;
+  --color-sub-3: #2a313f;
+  --color-plot: #141821;
+
+  --color-ink: #e8ecf3;
+  --color-ink-2: #a5aebe;
+  --color-ink-3: #7e8899;
+
+  --color-amber: #f2a14b;
+  --color-amber-soft: #2e2113;
+  --color-rule: #262d3a;
+  --color-edge-hi: #39414f;
+  --color-rule-strong: #6c7889;
+
   --font-mono-house: ui-monospace, "SF Mono", "Cascadia Code", "Consolas", monospace;
   --font-sans-house: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --radius-brand: 2px;
+  --radius-brand: 8px;
+}
+
+/*
+ * Product surface. Depth is a value step, then an edge that catches light,
+ * then a contact shadow. Motion is one curve and two durations, and all of
+ * it is removed under prefers-reduced-motion at the bottom of this file.
+ */
+:root {
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 140ms;
+  --dur-slow: 420ms;
+  --depth-edge: inset 0 1px 0 var(--color-edge-hi);
+  --elev-1: 0 1px 2px -1px rgb(0 0 0 / 45%), 0 4px 12px -4px rgb(0 0 0 / 40%);
+  --elev-2: 0 2px 4px -2px rgb(0 0 0 / 50%), 0 12px 32px -8px rgb(0 0 0 / 48%);
+  --elev-3: 0 4px 8px -4px rgb(0 0 0 / 55%), 0 28px 64px -16px rgb(0 0 0 / 60%);
 }
 
 html {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 body {
@@ -77,7 +114,8 @@ a {
   max-width: 42rem;
 }
 .docs-prose h1 {
-  font-size: 1.875rem;
+  font-size: clamp(2rem, 1.6rem + 1.6vw, 2.75rem);
+  letter-spacing: -0.025em;
   font-weight: 600;
   letter-spacing: -0.01em;
   margin-bottom: 0.75rem;
@@ -98,29 +136,31 @@ a {
 .docs-prose p {
   margin-top: 0.9rem;
   line-height: 1.7;
-  color: color-mix(in srgb, var(--color-ink) 88%, transparent);
+  color: var(--color-ink-2);
 }
 .docs-prose ul,
 .docs-prose ol {
   margin-top: 0.9rem;
   padding-left: 1.25rem;
   line-height: 1.7;
-  color: color-mix(in srgb, var(--color-ink) 88%, transparent);
+  color: var(--color-ink-2);
 }
 .docs-prose li {
   margin-top: 0.35rem;
 }
 .docs-prose code {
-  background: var(--color-amber-soft);
+  background: var(--color-sub-2);
+  border: 1px solid var(--color-rule);
   padding: 0.1em 0.35em;
-  border-radius: var(--radius-brand);
+  border-radius: 4px;
   font-size: 0.9em;
 }
 .docs-prose pre {
   margin-top: 0.9rem;
   padding: 0.9rem 1rem;
-  background: var(--color-ink);
-  color: var(--color-paper);
+  background: var(--color-plot);
+  border: 1px solid var(--color-rule);
+  color: var(--color-ink);
   border-radius: var(--radius-brand);
   overflow-x: auto;
   font-size: 0.85rem;
@@ -144,7 +184,7 @@ a {
   vertical-align: top;
 }
 .docs-prose th {
-  background: var(--color-amber-soft);
+  background: var(--color-sub-2);
   font-weight: 600;
 }
 .docs-prose a {
@@ -162,4 +202,188 @@ a {
   .aj-attribution a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
   .aj-attribution__sep { margin: 0 0.35em; }
   .aj-attribution { --aj-attribution-signal: var(--color-amber); }
+}
+
+@layer components {
+  /* --- Ambient: the one radial bloom, tinted by the signal hue. --- */
+  .ambient {
+    position: relative;
+    isolation: isolate;
+    overflow: clip;
+  }
+  .ambient::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -40% -10% auto -10%;
+    height: 200%;
+    pointer-events: none;
+    background:
+      radial-gradient(46% 44% at 28% -8%, rgb(242 161 75 / 26%), transparent 66%),
+      radial-gradient(40% 40% at 74% 0%, rgb(127 178 240 / 18%), transparent 70%);
+  }
+
+  /* --- Surfaces --- */
+  .panel {
+    background-color: var(--color-sub-1);
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius-brand);
+    box-shadow: var(--depth-edge), var(--elev-1);
+  }
+  .panel-lift {
+    transition:
+      box-shadow var(--dur-slow) var(--ease-out),
+      transform var(--dur-slow) var(--ease-out),
+      border-color var(--dur-slow) var(--ease-out);
+  }
+  .panel-lift:hover {
+    box-shadow: var(--depth-edge), var(--elev-2);
+    border-color: var(--color-edge-hi);
+    transform: translateY(-2px);
+  }
+  /* The plot is the instrument: the one genuinely floating element. */
+  .instrument {
+    background-color: var(--color-sub-1);
+    border: 1px solid var(--color-rule);
+    border-radius: 14px;
+    box-shadow: var(--depth-edge), var(--elev-3);
+  }
+
+  /* --- Chips --- */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid var(--color-rule);
+    border-radius: 999px;
+    background-color: var(--color-sub-2);
+    padding: 0.25rem 0.7rem;
+    font-family: var(--font-mono-house);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--color-ink-2);
+    white-space: nowrap;
+    text-decoration: none;
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
+  }
+  a.chip:hover,
+  button.chip:hover {
+    background-color: var(--color-sub-3);
+    border-color: var(--color-rule-strong);
+    color: var(--color-ink);
+    transform: translateY(-1px);
+  }
+  .chip b {
+    color: var(--color-ink);
+    font-weight: 600;
+  }
+
+  /* --- Type roles --- */
+  .t-display {
+    font-size: clamp(2.75rem, 1.6rem + 4.7vw, 4.75rem);
+    line-height: 0.99;
+    font-weight: 600;
+    letter-spacing: -0.035em;
+  }
+  .t-kicker {
+    font-family: var(--font-mono-house);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+  }
+  .t-lede {
+    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+    line-height: 1.55;
+    color: var(--color-ink-2);
+  }
+
+  /* --- Controls respond to being touched --- */
+  select,
+  textarea,
+  input[type="text"] {
+    background-color: var(--color-paper);
+    border: 1px solid var(--color-rule-strong);
+    border-radius: var(--radius-brand);
+    color: var(--color-ink);
+    transition:
+      border-color var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out);
+  }
+  select:hover,
+  textarea:hover,
+  input[type="text"]:hover {
+    border-color: var(--color-ink-3);
+  }
+  select:focus,
+  textarea:focus,
+  input[type="text"]:focus {
+    border-color: var(--color-amber);
+    box-shadow: 0 0 0 3px rgb(242 161 75 / 20%);
+  }
+
+  /* The one filled control on the page. It used to be `bg-ink text-paper`,
+     which on a dark ground is a white slab, so it now takes the signal. */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 40px;
+    padding: 0.5rem 1.1rem;
+    border: 1px solid var(--color-amber);
+    border-radius: var(--radius-brand);
+    background-color: var(--color-amber);
+    color: #17120a;
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow: var(--elev-1);
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out);
+  }
+  .btn-primary:hover {
+    background-color: #ffbb6c;
+    border-color: #ffbb6c;
+    transform: translateY(-1px);
+    box-shadow: var(--elev-2);
+  }
+
+  /* --- Entrance --- */
+  @keyframes cl-rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .rise {
+    animation: cl-rise var(--dur-slow) var(--ease-out) both;
+  }
+  .rise-2 {
+    animation-delay: 80ms;
+  }
+  .rise-3 {
+    animation-delay: 170ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+  .panel-lift:hover,
+  a.chip:hover,
+  button.chip:hover {
+    transform: none;
+  }
 }
