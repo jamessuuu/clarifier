@@ -1,5 +1,16 @@
 "use client";
 
+/* eslint-disable jsx-a11y/no-interactive-element-to-noninteractive-role --
+   The explicit role="table"/"row"/"cell"/"columnheader" below are not redundant
+   decoration: below 640px this table's CSS switches `display` to block/grid so
+   the five columns stack instead of scrolling sideways, and both Chrome and
+   Firefox drop a table's IMPLICIT table/row/cell roles the moment `display`
+   stops being table-*. Restating them is the documented repair for exactly that,
+   and it is what keeps the mapping grid a table to a screen reader on a phone.
+   The rule has no model of a display-switched table, so it reads the restated
+   role as downgrading an interactive element; it is wrong here, and the file
+   contains nothing but this table. */
+
 import type { ColumnMapping, ColumnRole } from "@/core/types";
 import { defaultNormalizationForRole } from "@/csv/infer";
 import type { ColumnStats } from "@/csv/infer";
@@ -59,7 +70,12 @@ export function MappingPanel({ mappings, stats, onChange }: MappingPanelProps): 
     // see e2e/smoke.spec.ts's own comment. This div's max-w-full is cheap,
     // harmless insurance kept from that investigation, not load-bearing).
     <div className="panel max-w-full overflow-x-auto">
-      <table className="w-full min-w-[500px] table-fixed text-left text-xs">
+      {/* `stack-table` + role="table" (globals.css, max-width:639px): below 640px
+          the rows become labelled blocks, because at 390px the min-width forced a
+          sideways scroll that sliced the normalization selects in half at the
+          viewport edge. The explicit roles here are what keep it a table to a
+          screen reader once CSS changes `display`. */}
+      <table role="table" className="stack-table w-full min-w-[500px] table-fixed text-left text-xs">
         {/* Explicit widths: table-fixed splits evenly by default, which gave
             the column-name cell 20% and let "flipper_length_mm" run under
             its neighbour. */}
@@ -71,20 +87,20 @@ export function MappingPanel({ mappings, stats, onChange }: MappingPanelProps): 
           <col style={{ width: "15%" }} />
         </colgroup>
         <thead>
-          <tr className="border-b border-rule bg-sub-2">
-            <th scope="col" className="px-3 py-2 font-house-mono font-medium">
+          <tr role="row" className="border-b border-rule bg-sub-2">
+            <th role="columnheader" scope="col" className="px-3 py-2 font-house-mono font-medium">
               column
             </th>
-            <th scope="col" className="px-3 py-2 font-house-mono font-medium">
+            <th role="columnheader" scope="col" className="px-3 py-2 font-house-mono font-medium">
               type
             </th>
-            <th scope="col" className="px-3 py-2 font-house-mono font-medium">
+            <th role="columnheader" scope="col" className="px-3 py-2 font-house-mono font-medium">
               role
             </th>
-            <th scope="col" className="px-3 py-2 font-house-mono font-medium">
+            <th role="columnheader" scope="col" className="px-3 py-2 font-house-mono font-medium">
               normalization
             </th>
-            <th scope="col" className="px-3 py-2 font-house-mono font-medium">
+            <th role="columnheader" scope="col" className="px-3 py-2 font-house-mono font-medium">
               missing
             </th>
           </tr>
@@ -96,10 +112,10 @@ export function MappingPanel({ mappings, stats, onChange }: MappingPanelProps): 
             const roleSelectId = `role-${String(i)}`;
             const normSelectId = `norm-${String(i)}`;
             return (
-              <tr key={m.name} className="border-b border-rule last:border-b-0">
-                <td className="px-3 py-2 font-house-mono">{m.name}</td>
-                <td className="px-3 py-2 text-ink/70">{m.inferredType}</td>
-                <td className="px-3 py-2">
+              <tr key={m.name} role="row" className="border-b border-rule last:border-b-0">
+                <td role="cell" data-label="column" className="px-3 py-2 font-house-mono">{m.name}</td>
+                <td role="cell" data-label="type" className="px-3 py-2 text-ink/70">{m.inferredType}</td>
+                <td role="cell" data-label="role" className="px-3 py-2">
                   <label htmlFor={roleSelectId} className="sr-only">
                     Force role for column {m.name}
                   </label>
@@ -111,7 +127,7 @@ export function MappingPanel({ mappings, stats, onChange }: MappingPanelProps): 
                     ))}
                   </select>
                 </td>
-                <td className="px-3 py-2">
+                <td role="cell" data-label="normalization" className="px-3 py-2">
                   {isNumeric ? (
                     <>
                       <label htmlFor={normSelectId} className="sr-only">
@@ -132,7 +148,7 @@ export function MappingPanel({ mappings, stats, onChange }: MappingPanelProps): 
                     <span className="text-ink/40">—</span>
                   )}
                 </td>
-                <td className="px-3 py-2 text-ink/70">{stat ? `${String(stat.missingCount)} of ${String(stat.missingCount + stat.nonNullCount)}` : "—"}</td>
+                <td role="cell" data-label="missing" className="px-3 py-2 text-ink/70">{stat ? `${String(stat.missingCount)} of ${String(stat.missingCount + stat.nonNullCount)}` : "—"}</td>
               </tr>
             );
           })}

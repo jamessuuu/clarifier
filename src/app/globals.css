@@ -387,3 +387,63 @@ a {
     transform: none;
   }
 }
+
+/* --- The column-mapping table stacks on a phone ---------------------------
+   The table needs five columns and a 500px minimum to keep its widths stable,
+   so at 390px the wrapper scrolled sideways: the two normalization selects were
+   sliced in half at the viewport edge and the "missing" column sat entirely
+   off-screen, with nothing on the page saying either could be reached. A
+   half-visible control reads as broken rather than as scrollable.
+
+   Below 640px each row becomes its own labelled block instead, so every control
+   is on screen at full width and nothing scrolls sideways. The markup carries
+   explicit ARIA roles because changing a table's `display` drops its implicit
+   table/row/cell roles from the accessibility tree in Chrome and Firefox; the
+   header row is moved to the label on each cell, and hidden with clip-path
+   rather than `display: none` so it stays available to assistive tech. */
+@media (max-width: 639px) {
+  .stack-table {
+    display: block;
+    min-width: 0;
+  }
+  .stack-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .stack-table tbody,
+  .stack-table tr {
+    display: block;
+    width: auto;
+  }
+  .stack-table tr {
+    padding-block: 0.4rem;
+  }
+  .stack-table td {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.75rem;
+    width: auto;
+    padding: 0.3rem 0.75rem;
+  }
+  .stack-table td::before {
+    content: attr(data-label);
+    font-family: var(--font-mono-house);
+    color: var(--color-ink);
+    opacity: 0.55;
+  }
+  /* Everything real in the cell sits in the value column. Without this the
+     "exaggerates outliers" note, being the cell's second child, wrapped into the
+     label column and read as a stray line under "normalization". */
+  .stack-table td > * {
+    grid-column: 2;
+  }
+  .stack-table td select {
+    width: 100%;
+    min-height: 24px;
+  }
+}
