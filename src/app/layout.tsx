@@ -42,6 +42,27 @@ export const metadata: Metadata = {
   },
 };
 
+// The site's author is the same Person entity agentjames publishes (one @id
+// across every project), so engines can join the sites to one maker.
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: SITE.name,
+  url: SITE.url,
+  author: {
+    "@type": "Person",
+    "@id": "https://agentjames.vercel.app/#person",
+    name: SITE.authorName,
+    url: SITE.portfolioUrl,
+    sameAs: [
+      "https://www.linkedin.com/in/james-lorenz-santos-720776251/",
+      "https://github.com/jamessuuu",
+      "https://www.onlinejobs.ph/jobseekers/info/2766463",
+      "https://ph.jobstreet.com/profiles/jameslorenz-santos-SXdpKyGqdK",
+    ],
+  },
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }): React.JSX.Element {
   return (
     // overflow-x-hidden on BOTH html and body — a deliberate belt-and-
@@ -62,6 +83,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }):
     // can never come back regardless of which descendant causes it next.
     <html lang="en" className="overflow-x-hidden">
       <body className="flex min-h-screen flex-col overflow-x-hidden">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
         <Header />
         <main className="w-full flex-1">{children}</main>
         <Footer />
